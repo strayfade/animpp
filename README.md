@@ -23,7 +23,7 @@ int main() {
   Anim.OnProgressChanged = Callback;
 
   Anim.Duration = 5000; // ms
-  Anim.SmoothingFunc = Smoothing;
+  Anim.SmoothingFunction = Smoothing;
   Anim.Start();
 }
 ```

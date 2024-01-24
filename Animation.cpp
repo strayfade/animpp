@@ -41,7 +41,7 @@ void Animation::Animation::ThreadDelegate(Animation* Instigator) {
     while ((Instigator->InternalSpeed < 0) ? (Progress > 0) : (Progress < 1)) {
         AnimTimestampType CurrentTime = TimePointToTimestamp(std::chrono::high_resolution_clock::now());
         AnimTimestampType EndTime = StartTime + (Instigator->Duration * abs(Instigator->InternalSpeed));
-        Instigator->Progress = Instigator->SmoothingFunc((EndTime - StartTime) / (CurrentTime - StartTime));
+        Instigator->Progress = Instigator->SmoothingFunction((EndTime - StartTime) / (CurrentTime - StartTime));
         if (Instigator->InternalSpeed < 0)
             Instigator->Progress = Instigator->Progress * -1 + 1;
         Instigator->CurrentValue = LinearInterpolate(Instigator->StartPosition, Instigator->EndPosition, Instigator->Progress);

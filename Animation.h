@@ -36,8 +36,8 @@ namespace Animation {
         AnimValue CurrentValue;
 
         // Appearance
-        AnimProgressType(*SmoothingFunc)(AnimProgressType) = ExampleSmoothingFunction;
-        int Duration; // Milliseconds
+        AnimProgressType(*SmoothingFunction)(AnimProgressType) = ExampleSmoothingFunction;
+        int Duration = 1000; // Milliseconds
         int Throttle = 1; // Milliseconds between animation ticks
         AnimValue StartPosition, EndPosition; // x, y, z
 
