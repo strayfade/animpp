@@ -3,23 +3,24 @@
 */
 
 #include <iostream>
+#include <thread>
 
 #ifndef ANIM_H
 
 // Config
-#define AnimProgressType float // Stores progress amount for each animation
-#define AnimValueType float // Stores position (output) amount for each animation
+#define AnimProgressType long double // Stores progress amount for each animation
+#define AnimValueType long double // Stores position (output) amount for each animation
 #define AnimTimestampType long double // Stores (ideally) UNIX timestamps to millisecond precision
-#define AnimPi 3.14159265
+#define AnimPi static_cast<AnimProgressType>(3.14159265)
 
 namespace Animation {
-    AnimProgressType ExampleSmoothingFunction(AnimProgressType x);
-    void ExampleStateCallback();
-    void ExampleProgressCallback(AnimProgressType CurrentProgress, AnimValue CurrentValue);
-
     struct AnimValue {
         AnimValueType x, y, z;
     };
+
+    AnimProgressType ExampleSmoothingFunction(AnimProgressType x);
+    void ExampleStateCallback();
+    void ExampleProgressCallback(AnimProgressType CurrentProgress, AnimValue CurrentValue);
 
     class Animation {
     private:
@@ -28,8 +29,8 @@ namespace Animation {
         float InternalSpeed = 1.0f;
         
         // Threads
-        void ThreadDelegate(Animation* Instigator);
         std::thread* ThreadRef = nullptr;
+        void ThreadDelegate();
     public:
         // State
         AnimProgressType Progress;
@@ -42,13 +43,12 @@ namespace Animation {
         AnimValue StartPosition, EndPosition; // x, y, z
 
         // Callbacks
-        void(*OnStarted)() = ExampleCallback;
-        void(*OnCompleted)() = ExampleCallback;
+        void(*OnStarted)() = ExampleStateCallback;
+        void(*OnCompleted)() = ExampleStateCallback;
         void(*OnProgressChanged)(AnimProgressType, AnimValue) = ExampleProgressCallback;
 
         // User Control
         void Start(float PlayRate = 1.0f);
-        void SetSpeed(float PlayRate = 1.0f);
         void Stop();
     };
 }

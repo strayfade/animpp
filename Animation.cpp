@@ -4,9 +4,9 @@
 
 #include "Animation.h"
 
-#include <thread>
 #include <chrono>
 #include <cmath>
+#include <functional>
 
 AnimProgressType Animation::ExampleSmoothingFunction(AnimProgressType x) {
     // Ease in/out
@@ -33,17 +33,17 @@ Animation::AnimValue LinearInterpolate(Animation::AnimValue Start, Animation::An
     return Out;
 }
 
-void Animation::Animation::ThreadDelegate(Animation* Instigator) {
+void Animation::Animation::ThreadDelegate() {
+    Animation* Instigator = this;
     Instigator->StartTime = TimePointToTimestamp(std::chrono::high_resolution_clock::now());
     Instigator->OnStarted();
 
     // Loop
-    while ((Instigator->InternalSpeed < 0) ? (Progress > 0) : (Progress < 1)) {
-        AnimTimestampType CurrentTime = TimePointToTimestamp(std::chrono::high_resolution_clock::now());
-        AnimTimestampType EndTime = StartTime + (Instigator->Duration * abs(Instigator->InternalSpeed));
-        Instigator->Progress = Instigator->SmoothingFunction((EndTime - StartTime) / (CurrentTime - StartTime));
-        if (Instigator->InternalSpeed < 0)
-            Instigator->Progress = Instigator->Progress * -1 + 1;
+    AnimTimestampType EndTime = Instigator->StartTime + (Instigator->Duration * abs(Instigator->InternalSpeed));
+    AnimTimestampType CurrentTime = TimePointToTimestamp(std::chrono::high_resolution_clock::now());
+    while (CurrentTime < EndTime) {
+        CurrentTime = TimePointToTimestamp(std::chrono::high_resolution_clock::now());
+        Instigator->Progress = Instigator->SmoothingFunction((CurrentTime - Instigator->StartTime) / (EndTime - Instigator->StartTime));
         Instigator->CurrentValue = LinearInterpolate(Instigator->StartPosition, Instigator->EndPosition, Instigator->Progress);
         Instigator->OnProgressChanged(Instigator->Progress, Instigator->CurrentValue);
         std::this_thread::sleep_for(std::chrono::milliseconds(Instigator->Throttle));
@@ -56,15 +56,12 @@ void Animation::Animation::ThreadDelegate(Animation* Instigator) {
 }
 
 void Animation::Animation::Start(float PlayRate) {
-    this->SetSpeed(PlayRate);
-    std::thread Thread(ThreadDelegate, this);
-    this->ThreadRef = &Thread;
-}
-void Animation::Animation::SetSpeed(float PlayRate) {
     this->InternalSpeed = 1 / PlayRate;
+    std::thread Thread(std::bind(&Animation::ThreadDelegate, this));
+    //this->ThreadRef = &Thread;
 }
 void Animation::Animation::Stop() {
-    if (this->ThreadRef != nullptr)
-        this->ThreadRef->join();
-    this->ThreadRef = nullptr;
+    //if (this->ThreadRef != nullptr)
+    //    this->ThreadRef->join();
+    //this->ThreadRef = nullptr;
 }
